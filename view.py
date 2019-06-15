@@ -7,12 +7,13 @@ from PyQt5.QtCore import QThread
 
 from mainWindow import Ui_Form
 
+
 class StartWindow(QMainWindow, Ui_Form):
     def __init__(self, camera):
         super(StartWindow, self).__init__()
         self.setupUi(self)
         self.init_ui()
-        
+
         # 相機
         self.camera = camera
         # 初始化一個 img 的 ndarray，用於存儲圖像
@@ -61,6 +62,7 @@ class StartWindow(QMainWindow, Ui_Form):
         q_pixmap = q_pixmap.scaledToWidth(self.label_1.width())
         self.label_1.setPixmap(q_pixmap)
         # self.label_2.setPixmap(q_pixmap)
+
 
 class MovieThread(QThread):
     def __init__(self, camera):

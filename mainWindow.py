@@ -48,5 +48,3 @@ class Ui_Form(object):
         self.btn_save.setText(_translate("Form", "Save"))
         self.btn_stop.setText(_translate("Form", "Stop"))
         self.btn_quit.setText(_translate("Form", "Quit"))
-
-
