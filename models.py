@@ -1,5 +1,4 @@
 import cv2
-import threading
 class Camera:
     def __init__(self, cam_num):
         self.cam_num = cam_num
