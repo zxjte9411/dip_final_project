@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 import math
+from random import randint
+from enum import Enum
 
 class Camera:
     def __init__(self, cam_num):
@@ -34,6 +36,7 @@ class ImageProcess:
     def __init__(self):
         self.img = None
         self.img_binary = None
+        self.img_gray = None
         self.img_sobel = None
         self.ndefects = None
         self.contours = None
@@ -96,3 +99,37 @@ class ImageProcess:
             cv2.circle(self.img, far, 5, [255, 0, 255], -1)
         print(self.ndefects)
         return self.ndefects
+
+class Mora:
+    def __init__(self):
+        self.MORA = ['石頭', '剪刀', '布']
+        self.pc = None
+        self.player = None
+        
+    def pc_random(self):
+        self.pc = self.MORA[randint(0, len(self.MORA)-1)]
+
+    def check(self, ndefects):
+        if ndefects <= 1:
+            self.player = self.MORA[0]
+        elif ndefects >= 2 and ndefects <=3:
+            self.player = self.MORA[1]
+        elif ndefects > 3: 
+            self.player = self.MORA[2]
+    
+    def compare(self):
+        you_win = '你贏惹'
+        you_lose = '你輸惹'
+        if (self.player == self.MORA[0] and self.pc == self.MORA[1]) or \
+            (self.player == self.MORA[1] and self.pc == self.MORA[2]) or \
+            (self.player == self.MORA[2] and self.pc == self.MORA[0]):
+            return you_win
+        elif (self.pc == self.MORA[0] and self.player == self.MORA[1]) or \
+            (self.pc == self.MORA[1] and self.player == self.MORA[2]) or \
+            (self.pc == self.MORA[2] and self.player == self.MORA[0]):
+            return you_lose
+        else:
+            return '平手'
+
+if __name__ == "__main__":
+    print('ok')
