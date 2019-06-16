@@ -4,7 +4,7 @@ from models import Camera
 from view import StartWindow
 
 if __name__ == "__main__":
-    camera = Camera(0)
+    camera = Camera(1)
     camera.initialize()
     app = QApplication([])
     start_window = StartWindow(camera)
