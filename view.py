@@ -9,6 +9,7 @@ from PyQt5 import QtCore
 from mainWindow import Ui_Form
 from models import ImageProcess, Mora
 
+
 class StartWindow(QMainWindow, Ui_Form):
     def __init__(self, camera):
         super(StartWindow, self).__init__()
@@ -16,10 +17,11 @@ class StartWindow(QMainWindow, Ui_Form):
         self.init_ui()
         # 相機
         self.camera = camera
-        self.movie_thread = MovieThread(self.refreshShow)
-        self.process_thread = MovieThread(self.process)
+        self.state = 0
+        self.movie_thread = MyThread(self.refreshShow)
+        self.process_thread = MyThread(self.process)
+        self.img_process_thread = MyThread(self.process)
         self.image_process = ImageProcess()
-        
 
     def init_ui(self):
         # 信號與槽連接, PyQt5 與 Qt5相同, 信號可綁定普通成員函數
@@ -27,20 +29,20 @@ class StartWindow(QMainWindow, Ui_Form):
         self.btn_save.clicked.connect(self.saveSlot)
         self.btn_play.clicked.connect(self.play)
         self.btn_quit.clicked.connect(self.close)
-        # self.btn_soble.clicked.connect(self.on_soble_click)
-        # self.btn_binary.clicked.connect(self.on_binary_click)
-        # self.btn_gray.clicked.connect(self.on_gray_click)
-        # self.btn_find_contours.clicked.connect(self.on_find_contours)
+        self.btn_soble.clicked.connect(self.on_soble_click)
+        self.btn_binary.clicked.connect(self.on_binary_click)
+        self.btn_gray.clicked.connect(self.on_gray_click)
+        self.btn_find_contours.clicked.connect(self.on_find_contours)
 
     def openSlot(self):
-        self.movie_thread.start()
         self.btn_quit.setEnabled(True)
         self.btn_save.setEnabled(True)
         self.btn_play.setEnabled(True)
-        # self.btn_gray.setEnabled(True)
-        # self.btn_binary.setEnabled(True)
-        # self.btn_soble.setEnabled(True)
-        # self.btn_find_contours.setEnabled(True)
+        self.btn_gray.setEnabled(True)
+        self.btn_binary.setEnabled(True)
+        self.btn_soble.setEnabled(True)
+        self.btn_find_contours.setEnabled(True)
+        self.movie_thread.start()
         self.process_thread.start()
 
     def saveSlot(self):
@@ -74,10 +76,28 @@ class StartWindow(QMainWindow, Ui_Form):
         q_pixmap = q_pixmap.scaled(resize_w, resize_h)
         self.label_1.setPixmap(q_pixmap)
 
+    def set_lebel_2_pixmap(self, img):
+        height, width = img.shape[:2]
+        bytesPerLine = 3 * width
+
+        if self.state == 2 or self.state == 3:
+            qimg = QImage(img.data, width, height,
+                          QImage.Format_Indexed8).rgbSwapped()
+        else:
+            qimg = QImage(img.data, width, height,
+                          QImage.Format_RGB888).rgbSwapped()
+
+        q_pixmap = QPixmap.fromImage(qimg)
+        resize_w = self.label_2.width()
+        resize_h = self.label_2.height()
+        q_pixmap = q_pixmap.scaled(resize_w, resize_h)
+        # q_pixmap = q_pixmap.scaled(resize, resize, QtCore.Qt.KeepAspectRatio)
+        self.label_2.setPixmap(q_pixmap)
+
     def process(self):
         frame = self.camera.get_frame()
 
-        self.img = frame #cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        self.img = frame
         self.image_process.img = self.img.copy()
         self.image_process.sobel()
         self.image_process.gray()
@@ -86,26 +106,21 @@ class StartWindow(QMainWindow, Ui_Form):
         try:
             self.image_process.get_larget_cnt()
             self.image_process.convex_hull()
-            x, y, w, h = cv2.boundingRect(self.image_process.cnt)  # 該最大 contour 的(x,y)位置及長寬
-            cv2.rectangle(self.image_process.img, (x, y), (x+w, y+h), (0, 255, 0), 2)
-            # mora = Mora()
-            # mora.check(self.image_process.ndefects)
-            # self.player_plain_text.setPlainText(mora.player)
+            x, y, w, h = cv2.boundingRect(
+                self.image_process.cnt)  # 該最大 contour 的(x,y)位置及長寬
+            cv2.rectangle(self.image_process.img, (x, y),
+                          (x+w, y+h), (0, 255, 0), 2)
         except Exception as e:
             print(e)
-            pass
-        height, width, channel = self.image_process.img.shape
-        bytesPerLine = 3 * width
 
-        self.qImg = QImage(self.image_process.img.data, width, height, bytesPerLine,
-                           QImage.Format_RGB888).rgbSwapped()
-                           
-        q_pixmap = QPixmap.fromImage(self.qImg)
-        resize_w = self.label_2.width()
-        resize_h = self.label_2.height()
-        q_pixmap = q_pixmap.scaled(resize_w, resize_h)
-        # q_pixmap = q_pixmap.scaled(resize, resize, QtCore.Qt.KeepAspectRatio)
-        self.label_2.setPixmap(q_pixmap)
+        if self.state == 0:
+            self.set_lebel_2_pixmap(self.image_process.img)
+        elif self.state == 1:
+            self.set_lebel_2_pixmap(self.image_process.img_sobel)
+        elif self.state == 2:
+            self.set_lebel_2_pixmap(self.image_process.img_gray)
+        elif self.state == 3:
+            self.set_lebel_2_pixmap(self.image_process.img_binary)
 
     def play(self):
         mora = Mora()
@@ -116,18 +131,19 @@ class StartWindow(QMainWindow, Ui_Form):
         self.result_plain_text.setPlainText(mora.compare())
 
     def on_soble_click(self):
-        pass
+        self.state = 1
 
     def on_gray_click(self):
-        pass
-    
+        self.state = 2
+
     def on_binary_click(self):
-        pass
+        self.state = 3
 
     def on_find_contours(self):
-        pass
+        self.state = 0
 
-class MovieThread(QThread):
+
+class MyThread(QThread):
     def __init__(self, job):
         super().__init__()
         self.stop_flas = False
@@ -140,4 +156,3 @@ class MovieThread(QThread):
         self.stop_flas = False
         while not self.stop_flas:
             self.job()
-
