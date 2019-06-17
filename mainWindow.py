@@ -88,7 +88,7 @@ class Ui_Form(object):
         self.label_6.setScaledContents(False)
         self.label_6.setObjectName("label_6")
         self.verticalLayoutWidget_3 = QtWidgets.QWidget(Form)
-        self.verticalLayoutWidget_3.setEnabled(False)
+        self.verticalLayoutWidget_3.setEnabled(True)
         self.verticalLayoutWidget_3.setGeometry(QtCore.QRect(630, 520, 399, 121))
         self.verticalLayoutWidget_3.setObjectName("verticalLayoutWidget_3")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_3)
