@@ -13,7 +13,7 @@ class Camera:
         self.cap = cv2.VideoCapture(self.cam_num)
 
     def get_frame(self):
-        ret, self.last_frame = self.cap.read()
+        _, self.last_frame = self.cap.read()
         return self.last_frame
 
     def set_brightness(self, value):
@@ -66,7 +66,7 @@ class ImageProcess:
     def find_contours(self):
         self.contours, hierarchy = cv2.findContours(
             self.img_binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        cv2.drawContours(self.img, self.contours, -1, (0, 0, 255), 2)
+        cv2.drawContours(self.img.copy(), self.contours, -1, (0, 0, 255), 2)
         return self.contours
 
     # 取得輪廓的特徵
