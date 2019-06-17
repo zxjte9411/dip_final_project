@@ -57,16 +57,13 @@ class StartWindow(QMainWindow, Ui_Form):
         # 用 opencv 寫入圖像
         cv2.imwrite(fileName, self.img)
 
-    def processSlot(self):
-        self.movie_thread.stop()
-
     def refreshShow(self):
         # 提取圖像的尺寸和通道, 用於將 opencv下的 image 轉換成 Qimage
         frame = self.camera.get_frame()
         self.img = cv2.cvtColor(frame, cv2.IMREAD_COLOR)
-        height, width, channel = self.img.shape
-        bytesPerLine = 3 * width
-        self.qImg = QImage(self.img.data, width, height, bytesPerLine,
+        height, width = self.img.shape[:2]
+        # bytesPerLine = 3 * width
+        self.qImg = QImage(self.img.data, width, height,
                            QImage.Format_RGB888).rgbSwapped()
 
         # 將 Qimage 顯示出來
@@ -78,7 +75,7 @@ class StartWindow(QMainWindow, Ui_Form):
 
     def set_lebel_2_pixmap(self, img):
         height, width = img.shape[:2]
-        bytesPerLine = 3 * width
+        # bytesPerLine = 3 * width
 
         if self.state == 2 or self.state == 3:
             qimg = QImage(img.data, width, height,
